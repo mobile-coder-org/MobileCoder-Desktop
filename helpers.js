@@ -75,7 +75,6 @@ function getAbsolutePath(pathname){
     return null;
 }
 
-
 //createFile("test", "Just a test file", ".txt");
 //createFile("testOverwrite", "Using this to test overwriting file", ".txt");
 //console.log(overwriteFile("test.txt", "testOverwrite.txt"));
