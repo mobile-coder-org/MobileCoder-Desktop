@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/jdynk215/MobileCoder-Desktop/issues"
   },
-  "homepage": "https://github.com/jdynk215/MobileCoder-Desktop#readme"
+  "homepage": "https://github.com/jdynk215/MobileCoder-Desktop#readme",
+  "dependencies": {
+    "firebase": "^8.0.1"
+  }
 }
