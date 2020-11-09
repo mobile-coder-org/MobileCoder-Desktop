@@ -2,8 +2,26 @@
  * @author Alex Hammer
  * @date October 31, 2020
  * 
- * Helper functions to interact with files
+ * Helper functions to interact with files and class FileHelper to call the helper functions.
  */
+
+class FileHelper{
+    static open(filename){
+        return openFile(filename);
+    }
+    static getExt(filename){
+        return getFileExt(filename);
+    }
+    static create(name, contents, extension){
+        return createFile(name, contents, extension);
+    }
+    static overwrite(origFilePath, newFilePath){
+        return overwriteFile(origFilePath, newFilePath);
+    }
+    static getAbsPath(pathname){
+        return getAbsolutePath(pathname);
+    }
+}
 
 const path = require("path");
 const fs = require("fs");
@@ -74,8 +92,3 @@ function getAbsolutePath(pathname){
         return path.resolve(pathname);
     return null;
 }
-
-//createFile("test", "Just a test file", ".txt");
-//createFile("testOverwrite", "Using this to test overwriting file", ".txt");
-//console.log(overwriteFile("test.txt", "testOverwrite.txt"));
-//console.log(getAbsolutePath("helpers.js"));
