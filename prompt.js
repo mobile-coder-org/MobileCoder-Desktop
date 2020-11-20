@@ -1,7 +1,7 @@
 /**
 * @author Alex Hammer
 * @date November 7th, 2020
-* Prompt functions that take user inputs until user quits.
+* Core of MobileCoder Desktop CLI. Prompts users for inputs until they quit, going through several of our flows outlined in documentation.
 */
 
 const {User} = require('./models/models.js');
@@ -42,11 +42,11 @@ const firebaseConfig = {
  *      default:
  *          TBD; Not yet implemented, likely to just be error handling asking user to enter a valid input.
  */
-var user;
+var user = null;
 function beginPrompt(){
     rl.resume();
     rl.question("MobileCoder []> ", (input) => {
-        switch(input){
+        switch(input.trim()){
             case "quit":
             case "Quit":
             case "q":
@@ -74,7 +74,17 @@ function beginPrompt(){
                 "'q'/'quit' - Exits the program.\n",
                 "'l'/'login' - Allows you to sign into an existing profile.\n",
                 "'s'/'signup' - Allows you to create a new account. \n",
-                "'h'/'help' - Help command to view all current available commands.");
+                "'h'/'help' - Help command to view all current available commands.\n",
+                "'check user' - used for testing purposes just to make sure correct user is being used (should be null here).");
+                rl.pause();
+                beginPrompt();
+                break;
+            case "":
+                rl.pause();
+                beginPrompt();
+                break;
+            case "check user":
+                console.log("Current user: ", user);
                 rl.pause();
                 beginPrompt();
                 break;
@@ -90,10 +100,42 @@ var currentWorkspace = "";
 function signedInPrompt(){
     rl.resume();
     rl.question("MobileCoder [" + currentWorkspace + "]> ", (input) => {
-        switch(input){
+
+        //Parse user input to take arguments, and trim off all excess whitespaces
+        input = input.trim();
+        let inputParse = ["", "", ""];
+        if(input.indexOf(" ") == -1){
+            inputParse[0] = input;
+        } else {
+            inputParse[0] = input.substring(0, input.indexOf(" ") + 1);
+            input = input.substring(input.indexOf(" ")).trim();
+            if(input.indexOf(" ") == -1){
+                inputParse[1] = (input);
+            }
+            else {
+                inputParse[1] = input.substring(0, input.indexOf(" "));
+                input = input.substring(input.indexOf(" ")).trim();
+                inputParse[2] = input;
+            }
+        }
+        
+        switch(inputParse[0] + inputParse[1] + inputParse[2]){
             case "q":
                 console.log("Goodbye!");
                 rl.close();
+                break;
+            case "signout":
+                firebase.auth().signOut().then(() => {
+                    console.log("Sign-out successful!");
+                    user = null;
+                    rl.pause();
+                    beginPrompt();
+                }).catch((error) => {
+                    console.log("An error occured when signing out...");
+                    console.log(error);
+                    rl.pause();
+                    signedInPrompt();
+                })
                 break;
             case "show workspaces":
                 console.log("Get workspaces function to be implemented");
@@ -101,24 +143,35 @@ function signedInPrompt(){
                 rl.pause();
                 signedInPrompt();
                 break;
-            case "use workspace test":
-                currentWorkspace = "test";
+            case "use workspace" + inputParse[2]:
+                if(inputParse[2] == ""){
+                    console.log("Missing workspace name. Please enter a valid workspace");
+                    rl.pause();
+                    signedInPrompt();
+                }
+                currentWorkspace = inputParse[2];
+                //NEED TO ADD: VALIDITY CHECK OF CURRENT WORKSPACE (if it exists in current user's workspaces)
                 rl.pause();
                 workspacePrompt();
-                break;
-            case "check user":
-                console.log("Current user: ", user);
-                rl.pause();
-                signedInPrompt();
                 break;
             case "help":
             case "h":
                 console.log("Current available commands: \n",
                 "'q' - Exits the program. \n",
+                "'signout - Signout out of current profile, sends back to beginning prompt.",
                 "'show workspaces - Shows workspaces available to the user (will only show an empty list for now). \n",
-                "'use workspace test - For testing purposes, until further user services are implemented, this is used to go to the workspace flow. \n",
+                "'use workspace - Enter a certain workspace. Currently will enter a workspace regardless of whether or not it actually exists. \n",
                 "'check user' - used for testing purposes just to make sure correct user is being used.\n",
                 "'h'/'help' - Displays list of currently available commands.");
+                rl.pause();
+                signedInPrompt();
+                break;
+            case "":
+                rl.pause();
+                signedInPrompt();
+                break;
+            case "check user":
+                console.log("Current user: ", user);
                 rl.pause();
                 signedInPrompt();
                 break;
@@ -134,19 +187,34 @@ function signedInPrompt(){
 function workspacePrompt(){
     rl.resume();
     rl.question("MobileCoder [" + currentWorkspace + "]> ", (input) => {
-        switch(input){
+
+        //Parse user input to take arguments, and trim off all excess whitespaces
+        input = input.trim();
+        let inputParse = ["", "", ""];
+        if(input.indexOf(" ") == -1){
+            inputParse[0] = input;
+        } else {
+            inputParse[0] = input.substring(0, input.indexOf(" ") + 1);
+            input = input.substring(input.indexOf(" ")).trim();
+            if(input.indexOf(" ") == -1){
+                inputParse[1] = (input);
+            }
+            else {
+                inputParse[1] = input.substring(0, input.indexOf(" "));
+                input = input.substring(input.indexOf(" ")).trim();
+                inputParse[2] = input;
+            }
+        }
+
+        switch(inputParse[0] + inputParse[1] + inputParse[2]){
             case "q":
                 console.log("Goodbye!");
                 rl.close();
                 break;
             case "show files":
                 console.log("Get workspace files function to be implemented");
-                console.log(user.workspaces[currentWorkspace].files);
-                rl.pause();
-                workspacePrompt();
-                break;
-            case "check user":
-                console.log("Current user: ", user);
+                //Need to add validity check on entering workspace flow in the signedInPrompt, otherwise the below line will crash.
+                //console.log(user.workspaces[user.workspaces.indexOf(currentWorkspace)].files);
                 rl.pause();
                 workspacePrompt();
                 break;
@@ -160,10 +228,19 @@ function workspacePrompt(){
             case "h":
                 console.log("Current available commands: \n",
                 "'q' - Exits the program. \n",
-                "'show files'- Shows files available to the user in current worksapce (will only show an undefined list for now). \n",
+                "'show files'- Shows files available to the user in current worksapce (shows nothing for now). \n",
                 "'leave workspace' - allows user to leave the current workspace, sending back to signedInPrompt. \n",
                 "'check user' - used for testing purposes just to make sure correct user is being used.\n",
                 "'h'/'help' - Displays list of currently available commands.");
+                rl.pause();
+                workspacePrompt();
+                break;
+            case "":
+                rl.pause();
+                workspacePrompt();
+                break;
+            case "check user":
+                console.log("Current user: ", user);
                 rl.pause();
                 workspacePrompt();
                 break;
@@ -233,8 +310,8 @@ function signup(){
                         console.log('Email in use');
                     else   
                         console.log(errorMessage);
-                    beginPrompt();
                 }
+                beginPrompt();
             });
         });
     });
