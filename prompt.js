@@ -10,22 +10,9 @@ const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
-var firebase = require('firebase/app');
+
+var {firebase} = require('./environment/config.js');
 require("firebase/auth");
-
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyDid2QqX_FubeW8euEBE-iMnWmLJCh5eqk",
-  authDomain: "mobilecoder-cf2ea.firebaseapp.com",
-  databaseURL: "https://mobilecoder-cf2ea.firebaseio.com",
-  projectId: "mobilecoder-cf2ea",
-  storageBucket: "mobilecoder-cf2ea.appspot.com",
-  messagingSenderId: "409368131515",
-  appId: "1:409368131515:web:ad9bb0eb12dd518cfb769e",
-  measurementId: "G-LSBZPKF91D"
-};
-
-
 
 /**
  * Beginning prompt function, takes user input and continuously loops (via. recursion) until a quit case is inputted.
@@ -39,7 +26,7 @@ const firebaseConfig = {
  */
 function prompt(){
     rl.resume();
-    rl.question("What would you like to do? \n>", function(input){
+    rl.question("What would you like to do? \n> ", function(input){
         switch(input){
             case "quit":
             case "Quit":
@@ -91,5 +78,5 @@ function signup(){
     })
 }
 
-firebase.initializeApp(firebaseConfig);
+
 prompt();

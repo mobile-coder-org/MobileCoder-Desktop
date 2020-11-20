@@ -92,3 +92,8 @@ function getAbsolutePath(pathname){
         return path.resolve(pathname);
     return null;
 }
+
+
+module.exports = {
+	FileHelper: FileHelper
+}
