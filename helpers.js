@@ -5,6 +5,8 @@
  * Helper functions to interact with files and class FileHelper to call the helper functions.
  */
 
+module.exports = {FileHelper: FileHelper}
+
 class FileHelper{
     static open(filename){
         return openFile(filename);
