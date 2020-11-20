@@ -1,4 +1,4 @@
-export class User {
+class User {
     constructor(uid, name, email, workspaces){
         this.uid = uid;
         this.name = name;
@@ -7,7 +7,7 @@ export class User {
     }
 }
 
-export class Workspace {
+class Workspace {
     constructor(wid, name, creation_date, files){
         this.wid = wid;
         this.name = name;
@@ -16,7 +16,7 @@ export class Workspace {
     }
 }
 
-export class File {
+class File {
     constructor(fid, name, extension, contents, desktop_abs_path){
         this.fid = fid;
         this.name = name;
@@ -24,4 +24,8 @@ export class File {
         this.contents = contents;
         this.desktop_abs_path = desktop_abs_path;
     }
+}
+
+module.exports = {
+	User, Workspace, File
 }
