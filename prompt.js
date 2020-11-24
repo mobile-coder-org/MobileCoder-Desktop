@@ -11,7 +11,7 @@ const rl = readline.createInterface({
 });
 
 const {User, Workspace, File} = require('./models/models.js');
-
+const {FileHelper} = require("./helpers.js");
 const {UserService} = require("./services/UserService.js");
 
 var {firebase} = require('./environment/config.js');
@@ -42,6 +42,7 @@ function beginPrompt(){
             case "Q":
                 rl.close();
                 console.log("Goodbye!");
+                process.exit();
                 break;
             case "login":
             case "Login":
@@ -114,6 +115,7 @@ function signedInPrompt(){
             case "q":
                 console.log("Goodbye!");
                 rl.close();
+                process.exit();
                 break;
             case "signout":
                 rl.pause();
@@ -131,7 +133,7 @@ function signedInPrompt(){
                 rl.pause();
                 var uid = user.uid;
                 var workspaceName = inputParse[2];
-                var creation_date =  getDate();
+                var creation_date =  Date.now();
                 UserService.createUserWorkspace(uid, workspaceName, creation_date, (workspace) => {
                     console.log("New workspace created: ", workspace);
                     signedInPrompt();
@@ -141,7 +143,7 @@ function signedInPrompt(){
                 rl.pause();
                 UserService.getUserWorkspaces(user.uid, (workspaces) =>{
                     if(workspaces.length != 0){
-                        workspaces.forEach(workspace => console.log(workspace.name));
+                        workspaces.forEach(workspace => console.log("* ", workspace.name));
                         signedInPrompt();
                     } else {
                         console.log("Empty workspace collection.");
@@ -161,11 +163,11 @@ function signedInPrompt(){
                         var i = 0;
                         while(i < workspaces.length && workspaces[i].name != currentWorkspace.name)
                             i++;
-                        if(workspaces[i].name == currentWorkspace.name){
+                        if(i < workspaces.length && workspaces[i].name == currentWorkspace.name){
                             currentWorkspace.wid = workspaces[i].wid;
                             workspacePrompt();
                         } else {
-                            currentWorkspace = "";
+                            currentWorkspace.name = "";
                             console.log("Invalid workspace name.");
                             signedInPrompt();
                         }
@@ -229,6 +231,7 @@ function workspacePrompt(){
             case "q":
                 console.log("Goodbye!");
                 rl.close();
+                process.exit();
                 break;
             case "show id":
                 rl.pause();
@@ -237,19 +240,43 @@ function workspacePrompt(){
                 workspacePrompt();
                 break;
             case "add file" + inputParse[2]:
-                console.log("Add file to be implemented.");
+                var contents = FileHelper.openFile(inputParse[2]);
+                if(contents){
+                    var extension = FileHelper.getFileExt(inputParse[2]);
+                    var fileName = inputParse[2].substring(0, inputParse[2].length-extension.length);
+                    var desktop_abs_path = FileHelper.getAbsolutePath("./" + inputParse[2]);
+                    console.log("uid: ", user.uid, "; wid: ", currentWorkspace.wid, "; fileName: ", fileName, "; extension: ", extension, "; contents: ", contents, "; abs_path: ", desktop_abs_path);
+                    UserService.createUserWorkspaceFile(user.uid, currentWorkspace.wid, fileName, extension, contents, desktop_abs_path, (file) => {
+                        if(file){
+                            console.log("* Pushed file '", fileName, "' successfully.");
+                            workspacePrompt();
+                        } else{
+                            console.log("An error occurred. Unable to pull file '", fileName, ".'");
+                            workspacePrompt();
+                        }
+                    });
+                }
                 workspacePrompt();
                 break;
             case "show files":
                 rl.pause();
                 UserService.getUserWorkspaceFiles(user.uid, currentWorkspace.wid, (files) =>{
                     if(files.length != 0){
-                        files.forEach(file => console.log(file.name + file.extension));
+                        files.forEach(file => console.log("* ", file.name + file.extension));
                         workspacePrompt();
                     } else {
                         console.log("Empty file collection.");
                         workspacePrompt();
                     }
+                });
+                break;
+            case "pull files":
+                rl.pause();
+                UserService.getUserWorkspaceFiles(user.uid, currentWorkspace.wid, (files) => {
+                    files.forEach(file => {
+                        FileHelper.createFile(file.name, file.contents, file.extension);
+                    });
+                    workspacePrompt();
                 });
                 break;
             case "leave workspace":
@@ -263,11 +290,12 @@ function workspacePrompt(){
                 rl.pause();
                 console.log("Current available commands: \n",
                 "'q' - Exits the program. \n",
-                "'add file [path_to_file]' - Adds a new file to the file collection in the current workspace. \n",
+                "'add file [file_name]' - Adds a new file to the file collection in the current workspace. \n",
                 "'show files'- Shows files available to the user in current worksapce (shows nothing for now). \n",
+                "'pull files' - Pulls all files in the current workspace to local directory.\n",
                 "'leave workspace' - Allows user to leave the current workspace, sending back to previous prompt. \n",
                 "'h'/'help' - Displays list of currently available commands. \n",
-                "check user' - used for testing purposes just to make sure correct user is being used.");
+                "'check user' - used for testing purposes just to make sure correct user is being used.");
                 workspacePrompt();
                 break;
             case "":
@@ -356,15 +384,7 @@ function signup(){
     });
 }
 
-function getDate(){
-    var d = new Date();
-    var year = "" + d.getFullYear();
-    var month = ("0" + (d.getMonth() + 1)).slice(-2);
-    var day = ("0" + d.getDate()).slice(-2);
-
-    return year + month + day;
-}
-console.log("Welcome to MobileCoder! \nTo get a list of all commands available to you, enter 'h' or 'help'! \n",
+console.log("\nWelcome to MobileCoder! \nTo get a list of all commands available to you, enter 'h' or 'help'!\n",
     "**Every prompt currently has a different set of commands listed in help**\n",
-    "(Note: Occasionally when quitting the program may not fully terminate, so you will have to CTRL+C to exit.");
+    /*"(Note: Occasionally when quitting the program may not fully terminate, so you will have to CTRL+C to exit."*/);
 beginPrompt();

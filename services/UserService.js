@@ -49,7 +49,6 @@ class UserService {
         })
         .then(docRef => {
             let workspace = new Workspace(docRef.id, workspaceName, creation_date);
-            docRef.update({wid: docRef.id});
             callback(workspace);
         })
         .catch((err) => {console.log("could not create workspace"); callback(err)});
@@ -84,7 +83,7 @@ class UserService {
                 callback(workspaces);
             }
         })
-        .catch((err) => console.log("error getting workspaces"));
+        .catch((err) => {console.log("error getting workspaces");});
     }
 
     static createUserWorkspaceFile(uid, wid, fileName, extension, contents, desktop_abs_path, callback){
@@ -95,11 +94,10 @@ class UserService {
             desktop_abs_path: desktop_abs_path
         })
         .then(docRef => {
-            let data = docRef.data();
-            let file = new File(docRef.id, data.name, data.extension, data.contents, data.desktop_abs_path);
+            let file = new File(docRef.id, fileName, extension, contents, desktop_abs_path);
             callback(file);
         })
-        .catch((err) => console.log("error creating file"));
+        .catch((err) => {console.log("error creating file");});
     }
 
     static getUserWorkspaceFiles(uid, wid, callback){
