@@ -1,6 +1,6 @@
 // Firebase App (the core Firebase SDK) is always required and
 // must be listed before other Firebase SDKs
-let firebase = require('../environment/firebase');
+let {firebase} = require('../environment/firebase');
 
 // Add the Firebase services that you want to use
 require("firebase/auth");
@@ -104,6 +104,26 @@ class UserService {
             callback(files);
         })
         .catch((err) => {console.log("error getting files");});
+    }
+
+    static overwriteFile(uid, wid, file, callback){
+        UserService.deleteUserWorkspaceFile(uid, wid, file.fid, (didDelete) => {
+            console.log(didDelete)
+            if(didDelete){
+                UserService.createUserWorkspaceFile(uid, wid, file.name, file.extension, "", "",  (file) => {
+                    if(file){
+                        callback(file);
+                    }
+                    else {                            
+                        //alert
+                        callback(undefined)
+                    }
+                })  
+            }
+            else{
+                callback(undefined)
+            }
+        })
     }
 }
 
