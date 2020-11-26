@@ -1,10 +1,6 @@
 // Firebase App (the core Firebase SDK) is always required and
 // must be listed before other Firebase SDKs
-<<<<<<< HEAD
-let {firebase} = require('../environment/firebase');
-=======
 let {firebase} = require('../environment/config.js');
->>>>>>> 94c298e372027e2c1867260e21b2b832f8ee5008
 
 // Add the Firebase services that you want to use
 require("firebase/auth");
