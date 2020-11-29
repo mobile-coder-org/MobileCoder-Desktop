@@ -27,14 +27,14 @@ class UserService {
         })
     }
 
-    static getUser(uid, callback){
+    static getUser(uid, callback, nocontents){
         db.collection("users").doc(uid).get().then((doc) =>{
             if(doc.exists){
                 let data = doc.data();
                 UserService.getUserWorkspaces(uid, (workspaces) =>{
                     let user = new User(uid, data.name, data.email, workspaces);
                     callback(user);
-                } );
+                }, nocontents);
             }
             else {
                 console.log("user does not exist")
@@ -51,39 +51,36 @@ class UserService {
             let workspace = new Workspace(docRef.id, workspaceName, creation_date);
             callback(workspace);
         })
-        .catch((err) => {console.log("could not create workspace"); callback(err)});
+        .catch((err) => {
+            //console.log("could not create workspace"); 
+            callback(undefined)
+        });
     }
 
-    static getUserWorkspaces(uid, callback){
+    static getUserWorkspaces(uid, callback, nocontents){
         db.collection("users").doc(uid).collection("workspaces").get().then((querySnapshot) =>{
-            //console.log("IN");
-            let workspaces = [];
-            let i = 0;
-            let len = querySnapshot.size;
-            if(len != 0){
+               console.log("IN");
+               let workspaces = [];
+               let i = 0;
+               let len = querySnapshot.size;
                querySnapshot.forEach(function(doc){
                     let data = doc.data();
-                    //console.log("got data");
-                    /*
+                    console.log("got data");
                     UserService.getUserWorkspaceFiles(uid, doc.id, (files) => {
                         let workspace = new Workspace(doc.id, data.name, data.creation_date, files);
-                        //console.log(files);
+                        console.log(files);
                         workspaces.push(workspace);
                         i += 1;
                         if(i === len){
                             callback(workspaces)
                         }
-                    })
-                    */
-                   let workspace = new Workspace(doc.id, data.name, data.creation_date);
-                   workspaces.push(workspace);
-               });
-               callback(workspaces);
-            } else {
-                callback(workspaces);
-            }
+                    }, nocontents)
+               }) 
         })
-        .catch((err) => {console.log("error getting workspaces");});
+        .catch((err) => {
+            //console.log("error getting workspaces")
+            callback(undefined)
+         });
     }
 
     static createUserWorkspaceFile(uid, wid, fileName, extension, contents, desktop_abs_path, callback){
@@ -97,25 +94,36 @@ class UserService {
             let file = new File(docRef.id, fileName, extension, contents, desktop_abs_path);
             callback(file);
         })
-        .catch((err) => {console.log("error creating file");});
+        .catch((err) => {
+            //console.log("error creating file");
+            callback(undefined);
+        });
     }
 
-    static getUserWorkspaceFiles(uid, wid, callback){
+    static getUserWorkspaceFiles(uid, wid, callback, nocontents){
         db.collection("users").doc(uid).collection("workspaces").doc(wid).collection("files").get()
         .then((querySnapshot) => {
             let files = [];
-            if(querySnapshot.size != 0){
-                querySnapshot.forEach(function(doc){
-                    let data = doc.data();
-                    let file = new File(doc.id, data.name, data.extension, data.contents, data.desktop_abs_path);
-                    files.push(file);
-                })
-                callback(files);
-            } else {
-                callback(files);
-            }
+            querySnapshot.forEach(function(doc){
+                let data = doc.data();
+                let contents = nocontents ? "" : data.contents;
+                let file = new File(doc.id, data.name, data.extension, contents, data.desktop_abs_path);
+                files.push(file);
+            })
+            callback(files);
         })
-        .catch((err) => {console.log("error getting files"); console.log(err);});
+        .catch((err) => {
+            //console.log("error getting files");
+            callback(undefined);
+        });
+    }
+
+    static getUserWorkspaceFileContent(uid, wid, fid, callback){
+        db.collection("users").doc(uid).collection("workspaces").doc(wid).collection("files").doc(fid).get().then((doc) =>{
+            let data = doc.data()
+            callback(data.contents);
+        })
+        .catch(() => callback(undefined))
     }
 
     static overwriteFile(uid, wid, file, callback){
