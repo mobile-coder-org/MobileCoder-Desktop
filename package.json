@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/jdynk215/MobileCoder-Desktop#readme",
   "dependencies": {
-    "firebase": "^8.0.1"
+    "firebase": "^8.0.1",
+    "readline-sync": "^1.4.10"
   }
 }

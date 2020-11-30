@@ -7,6 +7,7 @@
 
 const path = require("path");
 const fs = require("fs");
+const rl = require("readline-sync");
 
 class FileHelper{
     /**
@@ -38,10 +39,18 @@ class FileHelper{
      * @param {String} contents 
      * @param {String} extension 
      */
-    static createFile(name, contents, extension){
-        fs.writeFileSync(name + extension, contents, function (err) {
-            if(err) throw err;
-        });
+    static async createFile(name, contents, extension){
+        let overwriteFile = true;
+        if(fs.existsSync(name+extension))
+            overwriteFile = rl.keyInYNStrict(name+extension + " already exists, would you like to overwrite?");
+        if(overwriteFile){
+            fs.writeFileSync(name + extension, contents);
+            if(fs.existsSync(name+extension))
+                return true;
+            else
+                return false;
+        } else  
+            return false;
     }
 
     /**

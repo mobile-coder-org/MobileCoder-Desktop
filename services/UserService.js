@@ -15,107 +15,130 @@ class UserService {
     constructor(){
     }
 
-    static createUser(uid, name, email, callback){
-        db.collection("users").doc(uid).set({
+    static async createUser(uid, name, email){
+        let user = await db.collection("users").doc(uid).set({
             uid: uid,
             name: name,
             email: email
         })
         .then(() => {
-            let user = new User(uid, name, email);
-            callback(user);
-        })
+            let newUser = new User(uid, name, email);
+            return newUser;
+        });
+        return user;
     }
 
-    static getUser(uid, callback){
-        db.collection("users").doc(uid).get().then((doc) =>{
+    static async getUser(uid, nocontents){
+        let user = await db.collection("users").doc(uid).get().then(async (doc) =>{
             if(doc.exists){
                 let data = doc.data();
-                UserService.getUserWorkspaces(uid, (workspaces) =>{
-                    let user = new User(uid, data.name, data.email, workspaces);
-                    callback(user);
-                } );
+                let workspaces = await UserService.getUserWorkspaces(uid, nocontents);
+                let userInfo = new User(uid, data.name, data.email, workspaces);
+                return userInfo;
             }
             else {
-                console.log("user does not exist")
+                console.log("user does not exist");
+                return null;
             }
         })
+        return user;
     }
 
-    static createUserWorkspace(uid, workspaceName, creation_date, callback){
-        db.collection("users").doc(uid).collection("workspaces").add({
+    static async createUserWorkspace(uid, workspaceName, creation_date){
+        let workspace = await db.collection("users").doc(uid).collection("workspaces").add({
             name: workspaceName,
             creation_date: creation_date,
+        }).catch((err) => {
+            console.log("could not create workspace"); 
+            console.log(err);
         })
         .then(docRef => {
-            let workspace = new Workspace(docRef.id, workspaceName, creation_date);
-            callback(workspace);
-        })
-        .catch((err) => {console.log("could not create workspace"); callback(err)});
+            let newWorkspace = new Workspace(docRef.id, workspaceName, creation_date);
+            console.log("New workspace created with name: ", newWorkspace.name);
+            return newWorkspace;
+        });
+        return workspace;
     }
 
-    static getUserWorkspaces(uid, callback){
-        db.collection("users").doc(uid).collection("workspaces").get().then((querySnapshot) =>{
-            //console.log("IN");
-            let workspaces = [];
-            let i = 0;
-            let len = querySnapshot.size;
-            if(len != 0){
-               querySnapshot.forEach(function(doc){
-                    let data = doc.data();
-                    //console.log("got data");
-                    /*
-                    UserService.getUserWorkspaceFiles(uid, doc.id, (files) => {
-                        let workspace = new Workspace(doc.id, data.name, data.creation_date, files);
-                        //console.log(files);
-                        workspaces.push(workspace);
-                        i += 1;
-                        if(i === len){
-                            callback(workspaces)
-                        }
-                    })
-                    */
-                   let workspace = new Workspace(doc.id, data.name, data.creation_date);
-                   workspaces.push(workspace);
-               });
-               callback(workspaces);
-            } else {
-                callback(workspaces);
+    static async getUserWorkspaces(uid, nocontents){
+        let workspaces = await db.collection("users").doc(uid).collection("workspaces").get().catch((err) => {
+            console.log("error getting workspaces")
+            return null;
+         }).then(async (querySnapshot) =>{
+            let workspacesInfo = []; 
+            for(let doc of querySnapshot.docs){
+                let data = doc.data();
+                let files = await UserService.getUserWorkspaceFiles(uid, doc.id, nocontents);
+                let workspace = new Workspace(doc.id, data.name, data.creation_date, files);
+                workspacesInfo.push(workspace);
             }
-        })
-        .catch((err) => {console.log("error getting workspaces");});
+            return workspacesInfo; 
+        });
+        return workspaces;
     }
 
-    static createUserWorkspaceFile(uid, wid, fileName, extension, contents, desktop_abs_path, callback){
-        db.collection("users").doc(uid).collection("workspaces").doc(wid).collection("files").add({
+    static async createUserWorkspaceFile(uid, wid, fileName, extension, contents, desktop_abs_path){
+        let file = await db.collection("users").doc(uid).collection("workspaces").doc(wid).collection("files").add({
             name: fileName,
             extension: extension,
             contents: contents,
             desktop_abs_path: desktop_abs_path
-        })
-        .then(docRef => {
-            let file = new File(docRef.id, fileName, extension, contents, desktop_abs_path);
-            callback(file);
-        })
-        .catch((err) => {console.log("error creating file");});
+        }).catch((err) => {
+            console.log("error creating file");
+            console.log(err);
+        }).then(docRef => {
+            let fileNoContents = new File(docRef.id, fileName, extension, "", desktop_abs_path);
+            console.log("Successfully added file with name: ", fileName);
+            return fileNoContents;
+        });
+        return file;
     }
 
-    static getUserWorkspaceFiles(uid, wid, callback){
-        db.collection("users").doc(uid).collection("workspaces").doc(wid).collection("files").get()
-        .then((querySnapshot) => {
-            let files = [];
-            if(querySnapshot.size != 0){
-                querySnapshot.forEach(function(doc){
-                    let data = doc.data();
-                    let file = new File(doc.id, data.name, data.extension, data.contents, data.desktop_abs_path);
-                    files.push(file);
-                })
-                callback(files);
-            } else {
-                callback(files);
+    static async getUserWorkspaceFiles(uid, wid, nocontents){
+        let files = await db.collection("users").doc(uid).collection("workspaces").doc(wid).collection("files").get().catch((err) => {
+            console.log(err);
+            return null;
+        }).then(async (querySnapshot) => {
+            let filesInfo = [];
+            for(let doc of querySnapshot.docs){
+                let data = doc.data();
+                let contents = nocontents ? "" : data.contents;
+                let file = new File(doc.id, data.name, data.extension, contents, data.desktop_abs_path);
+                filesInfo.push(file);
+            }
+            return filesInfo;
+        });
+        return files;
+    }
+
+    static async getUserWorkspaceFileContent(uid, wid, fid){
+        let fileContent = db.collection("users").doc(uid).collection("workspaces").doc(wid).collection("files").doc(fid).get().catch((err) => {
+            console.log(err)
+        }).then((doc) =>{
+            let data = doc.data()
+            return data.contents;
+        });
+        return fileContent;
+    }
+
+    static overwriteFile(uid, wid, file, callback){
+        UserService.deleteUserWorkspaceFile(uid, wid, file.fid, (didDelete) => {
+            console.log(didDelete)
+            if(didDelete){
+                UserService.createUserWorkspaceFile(uid, wid, file.name, file.extension, "", "",  (file) => {
+                    if(file){
+                        callback(file);
+                    }
+                    else {                            
+                        //alert
+                        callback(undefined)
+                    }
+                })  
+            }
+            else{
+                callback(undefined)
             }
         })
-        .catch((err) => {console.log("error getting files"); console.log(err);});
     }
 }
 

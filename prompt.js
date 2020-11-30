@@ -4,387 +4,194 @@
 * Core of MobileCoder Desktop CLI. Prompts users for inputs until they quit, going through several of our flows outlined in documentation.
 */
 
-const readline = require("readline");
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
+const rl = require("readline-sync");
+const fs = require("fs");
 
 const {User, Workspace, File} = require('./models/models.js');
 const {FileHelper} = require("./helpers.js");
 const {UserService} = require("./services/UserService.js");
+const {Flows} = require("./promptFlows.js");
 
-var {firebase} = require('./environment/config.js');
+const {firebase} = require('./environment/config.js');
 require("firebase/auth");
 
-/**
- * Beginning prompt function, takes user input and continuously loops (via. recursion) until a quit case is inputted.
- * Current Cases: 
- *      'quit'/'Quit'/'q'/'Q': 
- *          Quit case, 4 different cases to avoid case sensitivity
- *      'login'/'Login'/'l'/'L':
- *          Goes into login flow, prompting user for email and password and authenticating with firebase, then moves onto new prompt if successful.
- *      'signup'/'Signup'/'s'/'S':
- *          Goes into sign up flow, prompting user for email and password, and creates new account with firebase authentication if inputs are valid, and loops same prompt.
- *      'help'/'Help'/'h'/'H':
- *          Displays a list of all currently available commands.
- *      default:
- *          TBD; Not yet implemented, likely to just be error handling asking user to enter a valid input.
- */
-var user = null;
-function beginPrompt(){
-    rl.resume();
-    rl.question("MobileCoder []> ", (input) => {
-        switch(input.trim()){
+
+continuePrompt = true;
+let availableCommands = [
+    //state 1 
+    "'signup - Create a new profile.\n" + 
+    "'login' - Login to an existing profile.\n" + 
+    "'quit' - Exits the program. \n" + 
+    "'help' - Displays a list of all currently available commands.", 
+    //state 2
+    "'show workspaces' - Displays a list of all workspaces associated with the current user.\n" +
+    "'create workspace [workspace_name]' - Creates a new workspace with [workspace_name] for the current user.\n" +
+    "'use workspace [workspace_name]' - Enter into workspace with [workspace_name] associated with the current user.\n" +
+    "'refresh' - Refreshes data. Use in case you have pushed a change on mobile while you were signed in on the desktop CLI.\n"+
+    "'signout' - Signout of the current profile.\n" +
+    "'quit' - Exits the program.\n" + 
+    "'help' - Displays a list of all currently available commands.",
+    //state 3
+    "'show files' - Displays a list of all files associated with the current user inside the current workspace.\n" +
+    "'add file [file_name]' - Adds an existing file to the current workspace. Be sure to specify an extension when entering the file name.\n" + 
+    "'pull file [file_name || -a] - Pulls a file [file_name] to local machine in current directory. [-a] to pull all files in current workspace.\n" +
+    "'refresh' - Refreshes data. Use in case you have pushed a change on mobile while you were signed in on the desktop CLI.\n" +
+    "'leave workspace' - Leaves the current workspace.\n" + 
+    "'quit' - Exits the program.\n" + 
+    "'help' - Displays a list of all currently available commands." 
+
+];
+var currentWorkspace = new Workspace(null, "", null);
+var user;
+var state = 0; //0 - Beginning | 1 - Signed-in | 2 - In a workspace
+async function prompt() {
+    do{
+        let inputArgs = rl.promptCL({ _: () => {}}, {
+            prompt: 'MobileCoder [' + currentWorkspace.name + ']> ',
+        });
+        let fullInput = inputArgs.join(' ');
+
+        switch(fullInput){
+            case "help":
+                console.log(availableCommands[state]);
+                break;
+            case "check user":
+                console.log(user);
+                break;
+            case "check state":
+                console.log(state);
+                break;
             case "quit":
-            case "Quit":
-            case "q":
-            case "Q":
-                rl.close();
-                console.log("Goodbye!");
+                continuePrompt = false;
                 process.exit();
-                break;
-            case "login":
-            case "Login":
-            case "l":
-            case "L":
-                login();
-                break;
-            case "signup":
-            case "Signup":
-            case "s":
-            case "S":
-                signup();
-                break;
-            case "help":
-            case "Help":
-            case "h":
-            case "H":
-                rl.pause();
-                console.log("Current available commands:\n", 
-                "'q'/'quit' - Exits the program.\n",
-                "'l'/'login' - Allows you to sign into an existing profile.\n",
-                "'s'/'signup' - Allows you to create a new account. \n",
-                "'h'/'help' - Help command to view all current available commands.\n",
-                "'check user' - used for testing purposes just to make sure correct user is being used (should be null here).");
-                beginPrompt();
-                break;
-            case "":
-                rl.pause();
-                beginPrompt();
-                break;
-            case "check user":
-                rl.pause();
-                console.log("Current user: ", user);
-                beginPrompt();
                 break;
             default:
-                rl.pause();
-                console.log("Default case not yet implemented");
-                beginPrompt();
-        }
-    });
-}
-
-var currentWorkspace = {wid: "",
-                        name: ""};
-                        
-function signedInPrompt(){
-    rl.resume();
-    rl.question("MobileCoder [" + currentWorkspace.name + "]> ", (input) => {
-
-        //Parse user input to take arguments, and trim off all excess whitespaces
-        input = input.trim();
-        let inputParse = ["", "", ""];
-        if(input.indexOf(" ") == -1){
-            inputParse[0] = input;
-        } else {
-            inputParse[0] = input.substring(0, input.indexOf(" ") + 1);
-            input = input.substring(input.indexOf(" ")).trim();
-            if(input.indexOf(" ") == -1){
-                inputParse[1] = (input);
-            }
-            else {
-                inputParse[1] = input.substring(0, input.indexOf(" "));
-                input = input.substring(input.indexOf(" ")).trim();
-                inputParse[2] = input;
-            }
-        }
-        
-        switch(inputParse[0] + inputParse[1] + inputParse[2]){
-            case "q":
-                console.log("Goodbye!");
-                rl.close();
-                process.exit();
-                break;
-            case "signout":
-                rl.pause();
-                firebase.auth().signOut().then(() => {
-                    console.log("Sign-out successful!");
-                    user = null;
-                    beginPrompt();
-                }).catch((error) => {
-                    console.log("An error occured when signing out...");
-                    console.log(error);
-                    signedInPrompt();
-                })
-                break;
-            case "create workspace" + inputParse[2]:
-                rl.pause();
-                var uid = user.uid;
-                var workspaceName = inputParse[2];
-                var creation_date =  Date.now();
-                UserService.createUserWorkspace(uid, workspaceName, creation_date, (workspace) => {
-                    console.log("New workspace created: ", workspace);
-                    signedInPrompt();
-                });
-                break;
-            case "show workspaces":
-                rl.pause();
-                UserService.getUserWorkspaces(user.uid, (workspaces) =>{
-                    if(workspaces.length != 0){
-                        workspaces.forEach(workspace => console.log("* ", workspace.name));
-                        signedInPrompt();
-                    } else {
-                        console.log("Empty workspace collection.");
-                        signedInPrompt();
-                    }
-                });
-                break;
-            case "use workspace" + inputParse[2]:
-                rl.pause();
-                if(inputParse[2] == ""){
-                    console.log("Missing workspace name. Please enter a valid workspace");
-                    signedInPrompt();
-                } else {
-                    //console.log(inputParse[2]);
-                    currentWorkspace.name = inputParse[2];
-                    UserService.getUserWorkspaces(user.uid, (workspaces) =>{
-                        var i = 0;
-                        while(i < workspaces.length && workspaces[i].name != currentWorkspace.name)
-                            i++;
-                        if(i < workspaces.length && workspaces[i].name == currentWorkspace.name){
-                            currentWorkspace.wid = workspaces[i].wid;
-                            workspacePrompt();
-                        } else {
-                            currentWorkspace.name = "";
-                            console.log("Invalid workspace name.");
-                            signedInPrompt();
+                switch(state){
+                    case 0:
+                        switch(fullInput){
+                            case "signup":
+                                await Flows.signup();
+                                break;
+                            case "login":
+                                user = await Flows.login();
+                                if(user){
+                                    state = 1;
+                                    console.log("Successfully logged into user with uid: ", user.uid);
+                                }
+                                break;
+                            default: 
+                                console.log("Invalid command. Enter 'help' to get a list of all currently available commands.");
                         }
-                    });
-                }
-                break;
-            case "help":
-            case "h":
-                rl.pause();
-                console.log("Current available commands: \n",
-                "'q' - Exits the program. \n",
-                "'signout - Signout out of current profile, sends back to beginning prompt. \n",
-                "'create workspace [workspace name]' - Creates a new workspace and currently returns the workspace object associated with it. \n",
-                "'show workspaces - Shows workspaces available to the user. \n",
-                "'use workspace [workspace name] - Enter a certain workspace. Currently crashes on invalid workspace name. \n",
-                "'h'/'help' - Displays list of currently available commands. \n",
-                "'check user' - used for testing purposes just to make sure correct user is being used.");
-                signedInPrompt();
-                break;
-            case "":
-                rl.pause();
-                signedInPrompt();
-                break;
-            case "check user":
-                rl.pause();
-                console.log("Current user: ", user);
-                signedInPrompt();
-                break;
-            default: 
-                rl.pause();
-                console.log("Defaultcase not yet implemented");
-                signedInPrompt();
-                break;
-        }
-    });
-}
-
-function workspacePrompt(){
-    rl.resume();
-    rl.question("MobileCoder [" + currentWorkspace.name + "]> ", (input) => {
-
-        //Parse user input to take arguments, and trim off all excess whitespaces
-        input = input.trim();
-        let inputParse = ["", "", ""];
-        if(input.indexOf(" ") == -1){
-            inputParse[0] = input;
-        } else {
-            inputParse[0] = input.substring(0, input.indexOf(" ") + 1);
-            input = input.substring(input.indexOf(" ")).trim();
-            if(input.indexOf(" ") == -1){
-                inputParse[1] = (input);
-            }
-            else {
-                inputParse[1] = input.substring(0, input.indexOf(" "));
-                input = input.substring(input.indexOf(" ")).trim();
-                inputParse[2] = input;
-            }
-        }
-
-        switch(inputParse[0] + inputParse[1] + inputParse[2]){
-            case "q":
-                console.log("Goodbye!");
-                rl.close();
-                process.exit();
-                break;
-            case "show id":
-                rl.pause();
-                console.log(user.uid);
-                console.log(currentWorkspace.wid);
-                workspacePrompt();
-                break;
-            case "add file" + inputParse[2]:
-                var contents = FileHelper.openFile(inputParse[2]);
-                if(contents){
-                    var extension = FileHelper.getFileExt(inputParse[2]);
-                    var fileName = inputParse[2].substring(0, inputParse[2].length-extension.length);
-                    var desktop_abs_path = FileHelper.getAbsolutePath("./" + inputParse[2]);
-                    console.log("uid: ", user.uid, "; wid: ", currentWorkspace.wid, "; fileName: ", fileName, "; extension: ", extension, "; contents: ", contents, "; abs_path: ", desktop_abs_path);
-                    UserService.createUserWorkspaceFile(user.uid, currentWorkspace.wid, fileName, extension, contents, desktop_abs_path, (file) => {
-                        if(file){
-                            console.log("* Pushed file '", fileName, "' successfully.");
-                            workspacePrompt();
-                        } else{
-                            console.log("An error occurred. Unable to pull file '", fileName, ".'");
-                            workspacePrompt();
+                        break;
+                    case 1:
+                        let workspaceNames = [];
+                        for(workspace of user.workspaces)
+                            workspaceNames.push(workspace.name);
+                        switch(fullInput){
+                            case "show workspaces":
+                                if(user.workspaces.length > 0)
+                                    user.workspaces.forEach((workspace) => console.log("* " + workspace.name));
+                                else    
+                                    console.log("Empty workspace collection.");
+                                break;
+                            case "create workspace " + inputArgs[2]:
+                                if(workspaceNames.indexOf(inputArgs[2]) < 0){   
+                                    let newWorkspace = await UserService.createUserWorkspace(user.uid, inputArgs[2], Date.now());
+                                    user.workspaces.push(newWorkspace);
+                                }
+                                else   
+                                    console.log("Workspace already exists."); 
+                                break;
+                            case "use workspace " + inputArgs[2]:
+                                let i = workspaceNames.indexOf(inputArgs[2]);
+                                if(i >= 0){
+                                    state = 2;
+                                    currentWorkspace = user.workspaces[i];
+                                } else 
+                                    console.log("Workspace does not exist.");
+                                break;
+                            case "refresh":
+                                user = await UserService.getUser(user.uid, true);
+                                break;
+                            case "signout":
+                                user = await Flows.signout();
+                                if(!user)
+                                    state = 0;
+                                break;
+                            default: 
+                                console.log("Invalid command. Enter 'help' to get a list of all currently available commands.");
                         }
-                    });
-                }
-                workspacePrompt();
-                break;
-            case "show files":
-                rl.pause();
-                UserService.getUserWorkspaceFiles(user.uid, currentWorkspace.wid, (files) =>{
-                    if(files.length != 0){
-                        files.forEach(file => console.log("* ", file.name + file.extension));
-                        workspacePrompt();
-                    } else {
-                        console.log("Empty file collection.");
-                        workspacePrompt();
-                    }
-                });
-                break;
-            case "pull files":
-                rl.pause();
-                UserService.getUserWorkspaceFiles(user.uid, currentWorkspace.wid, (files) => {
-                    files.forEach(file => {
-                        FileHelper.createFile(file.name, file.contents, file.extension);
-                    });
-                    workspacePrompt();
-                });
-                break;
-            case "leave workspace":
-                rl.pause();
-                currentWorkspace.name = "";
-                console.log("*** Exiting current workspace ***");
-                signedInPrompt();
-                break;
-            case "help":
-            case "h":
-                rl.pause();
-                console.log("Current available commands: \n",
-                "'q' - Exits the program. \n",
-                "'add file [file_name]' - Adds a new file to the file collection in the current workspace. \n",
-                "'show files'- Shows files available to the user in current worksapce (shows nothing for now). \n",
-                "'pull files' - Pulls all files in the current workspace to local directory.\n",
-                "'leave workspace' - Allows user to leave the current workspace, sending back to previous prompt. \n",
-                "'h'/'help' - Displays list of currently available commands. \n",
-                "'check user' - used for testing purposes just to make sure correct user is being used.");
-                workspacePrompt();
-                break;
-            case "":
-                rl.pause();
-                workspacePrompt();
-                break;
-            case "check user":
-                rl.pause();
-                console.log("Current user: ", user);
-                workspacePrompt();
-                break;
-            default:
-                rl.pause();
-                console.log("Default case not yet implemented.");
-                workspacePrompt();
-                break;
+                        break;
+                    case 2:
+                        let files = {names: [], 
+                                     fids: []};
+                        for(file of currentWorkspace.files){
+                            files.names.push(file.name + file.extension)
+                            files.fids.push(file.fid);
+                        };
+                        switch(fullInput){
+                            case "show files":
+                                if(files.names.length > 0)
+                                    for(fileName of files.names)
+                                        console.log(fileName)
+                                else   
+                                    console.log("Empty file collection");
+                                break;
+                            case "add file " + inputArgs[2]:
+                                if(fs.existsSync(inputArgs[2])){
+                                    if(files.indexOf(inputArgs[2]) < 0){
+                                        let fileName = inputArgs[2].substring(0, inputArgs[2].lastIndexOf('.')).split('\\').pop().split('/').pop();
+                                        let desktop_abs_path = FileHelper.getAbsolutePath(inputArgs[2]);
+                                        let extension = FileHelper.getFileExt(desktop_abs_path);
+                                        let contents = FileHelper.openFile(desktop_abs_path);
+                                        let newFile = await UserService.createUserWorkspaceFile(user.uid, currentWorkspace.wid, fileName, extension, contents, desktop_abs_path);
+                                        currentWorkspace.files.push(newFile);
+                                    }
+                                } else 
+                                    console.log("File does not exist. Please double check you're entering the correct file_name or path_to_file_name, with an extension.")
+                                break;
+                            case "pull file " + inputArgs[2]:
+                                if(inputArgs[2] == "-a"){
+                                    let fileName, contents, extension;
+                                    for(file of currentWorkspace.files){
+                                        fileName = file.name;
+                                        contents = await UserService.getUserWorkspaceFileContent(user.uid, currentWorkspace.wid, file.fid);
+                                        extension = file.extension;
+                                        if(await FileHelper.createFile(fileName, contents, extension))
+                                            console.log("Created new file: ", fileName + extension, " in current directory.");
+                                        else    
+                                            console.log("Failed to create file: ", fileName + extension);
+                                    }
+                                } else{
+                                    let i = files.names.indexOf(inputArgs[2]);
+                                    if(i >= 0){
+                                        let fileName = currentWorkspace.files[i].name;
+                                        let contents = await UserService.getUserWorkspaceFileContent(user.uid, currentWorkspace.wid, files.fids[i]);
+                                        let extension = currentWorkspace.files[i].extension;
+
+                                        if(await FileHelper.createFile(fileName, contents, extension))
+                                            console.log("Created new file: ", fileName + extension, " in current directory.");
+                                        else
+                                            console.log("Failed to create file...");
+                                    } else  
+                                        console.log("File doesn't exist in this workspace. Please double check you're entering the correct file_name, with an extension.");
+                                }
+                                break;
+                            case "refresh":
+                                user = await UserService.getUser(user.uid, true);
+                                break;
+                            case "leave workspace":
+                                currentWorkspace = new Workspace(null, "", null);
+                                state = 1;
+                                break;
+                            default: 
+                                console.log("Invalid command. Enter 'help' to get a list of all currently available commands.");
+                        }
+                        break;  
+            }
         }
-    });
+
+    } while(continuePrompt);
 }
 
-/**
- * Log in flow for 'login' case of prompt. Uses firebase Authentication to log user in.
- */
-function login(){
-    rl.question("Email: ", function(email){
-        rl.question("Password: ", function(password){
-            var errorCode;
-            var errorMessage;
-            firebase.auth().signInWithEmailAndPassword(email, password).catch(function(error){
-                errorCode = error.code;
-                errorMessage = error.message;
-            }).then(() => {
-                rl.pause();
-                var checkUser = firebase.auth().currentUser;
-                if(checkUser) {
-                    user = new User(checkUser.uid, checkUser.name, checkUser.email);
-                    console.log("Logged into user with email : ", user.email, "and uid: ", user.uid);  
-                    signedInPrompt();          
-                } else {
-                    console.log("Login failed...");
-                    if(errorCode === 'auth/wrong-password'){
-                        console.log('Wrong Password.');
-                    }
-                    else 
-                        console.log(errorMessage);
-                    beginPrompt();
-                }
-            });
-        });
-    });
-}
-
-/**
- * Sign up flow for 'signup' case of prompt. Uses firebase Authentication to sign up a user.
- */
-function signup(){
-    rl.question("Email: ", function(email){
-        rl.question("Password: ", function(password){
-            var errorCode;
-            var errorMessage;
-            firebase.auth().createUserWithEmailAndPassword(email, password).catch(function(error){
-                errorCode = error.code;
-                errorMessage = error.message;
-            }).then(() => {
-                rl.pause();
-                var user = firebase.auth().currentUser;
-                var uid, name, email;
-                if(user) {     
-                    uid = user.uid;
-                    name = user.email.substring(0, user.email.indexOf("@"));
-                    email = user.email;
-                    UserService.createUser(uid, name, email, (u) => {
-                        console.log("New user created: ", u);
-                        beginPrompt();
-                    });
-                } else {
-                    console.log("Failed to create new user...");
-                    if(errorCode == 'auth/email-already-in-use')
-                        console.log('Email in use');
-                    else   
-                        console.log(errorMessage);
-                    beginPrompt();
-                }
-            });
-        });
-    });
-}
-
-console.log("\nWelcome to MobileCoder! \nTo get a list of all commands available to you, enter 'h' or 'help'!\n",
-    "**Every prompt currently has a different set of commands listed in help**\n",
-    /*"(Note: Occasionally when quitting the program may not fully terminate, so you will have to CTRL+C to exit."*/);
-beginPrompt();
+prompt();
