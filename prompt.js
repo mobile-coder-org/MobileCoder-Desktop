@@ -139,7 +139,7 @@ async function prompt() {
                                 break;
                             case "add file " + inputArgs[2]:
                                 if(fs.existsSync(inputArgs[2])){
-                                    if(files.indexOf(inputArgs[2]) < 0){
+                                    if(files.names.indexOf(inputArgs[2]) < 0){
                                         let fileName = inputArgs[2].substring(0, inputArgs[2].lastIndexOf('.')).split('\\').pop().split('/').pop();
                                         let desktop_abs_path = FileHelper.getAbsolutePath(inputArgs[2]);
                                         let extension = FileHelper.getFileExt(desktop_abs_path);
