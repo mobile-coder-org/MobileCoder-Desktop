@@ -33,7 +33,7 @@ let availableCommands = [
     "'help' - Displays a list of all currently available commands.",
     //state 3
     "'show files' - Displays a list of all files associated with the current user inside the current workspace.\n" +
-    "'add file [file_name]' - Adds an existing file to the current workspace. Be sure to specify an extension when entering the file name.\n" + 
+    "'add file [file_name || path_to_file_name]' - Adds an existing file to the current workspace. Be sure to specify an extension when entering the file name.\n" + 
     "'pull file [file_name || -a] - Pulls a file [file_name] to local machine in current directory. [-a] to pull all files in current workspace.\n" +
     "'refresh' - Refreshes data. Use in case you have pushed a change on mobile while you were signed in on the desktop CLI.\n" +
     "'leave workspace' - Leaves the current workspace.\n" + 
