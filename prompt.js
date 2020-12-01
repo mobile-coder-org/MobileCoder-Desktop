@@ -6,15 +6,12 @@
 
 const rl = require("readline-sync");
 const fs = require("fs");
+const path = require("path");
 
-const {User, Workspace, File} = require('./models/models.js');
+const {User, Workspace} = require('./models/models.js');
 const {FileHelper} = require("./helpers.js");
 const {UserService} = require("./services/UserService.js");
 const {Flows} = require("./promptFlows.js");
-
-const {firebase} = require('./environment/config.js');
-require("firebase/auth");
-
 
 continuePrompt = true;
 let availableCommands = [
@@ -42,7 +39,7 @@ let availableCommands = [
 
 ];
 var currentWorkspace = new Workspace(null, "", null);
-var user;
+var user = new User(null, "", "");
 var state = 0; //0 - Beginning | 1 - Signed-in | 2 - In a workspace
 async function prompt() {
     do{
@@ -78,6 +75,36 @@ async function prompt() {
                                     state = 1;
                                     console.log("Successfully logged into user with uid: ", user.uid);
                                 }
+                                break;
+                            case "ls":
+                            case "ls " + inputArgs[1]:
+                                if(inputArgs[1]){
+                                    if(fs.existsSync(inputArgs[1])){
+                                        for(file of fs.readdirSync(inputArgs[1], {object: withFileTypes = true})){
+                                            if(file.indexOf('.') != 0){
+                                                let stats = fs.statSync(path.join(inputArgs[1] + '/', file));
+                                                if(stats.isDirectory())
+                                                    console.log('* '+ file + '/');
+                                                else if(file.indexOf('.') != 0)
+                                                    console.log('* ' + file);
+                                            }
+                                        }
+                                    } else 
+                                        console.log("Invalid Directory");
+                                } else {
+                                    for(file of fs.readdirSync('.', {object: withFileTypes = true})){
+                                        if(file.indexOf('.') != 0){
+                                            let stats = fs.statSync(path.join('./', file));
+                                            if(stats.isDirectory())
+                                                console.log('* ' + file + '/');
+                                            else if(file.indexOf('.') != 0)
+                                                console.log('* ' + file);
+                                        }
+                                    }
+                                }
+                                break;
+                            case "clear":
+                                console.clear();
                                 break;
                             default: 
                                 console.log("Invalid command. Enter 'help' to get a list of all currently available commands.");
@@ -146,6 +173,12 @@ async function prompt() {
                                         let contents = FileHelper.openFile(desktop_abs_path);
                                         let newFile = await UserService.createUserWorkspaceFile(user.uid, currentWorkspace.wid, fileName, extension, contents, desktop_abs_path);
                                         currentWorkspace.files.push(newFile);
+                                    } else{
+                                        let overwrite = rl.keyInYNStrict("File already exists. Would you like to overwrite?");
+                                        if(overwrite)
+                                            console.log("Overwrite feature to be implemented: ", overwrite);
+                                        else
+                                            console.log("Failed to add file...");
                                     }
                                 } else 
                                     console.log("File does not exist. Please double check you're entering the correct file_name or path_to_file_name, with an extension.")
@@ -194,4 +227,16 @@ async function prompt() {
     } while(continuePrompt);
 }
 
+function ls(dirname){
+    for(file of fs.readdirSync(dirname, {object: withFileTypes = true}) ){
+        if(file.indexOf('.') != 0){
+            let stats = fs.statSync(path.join(dirname + '/', file));
+            if(stats.isDirectory())
+                console.log('* ' + dirname +'/'+ file);
+            else if(file.indexOf('.') != 0)
+                console.log('* ' + file);
+        }
+    }
+}
 prompt();
+//ls('.');

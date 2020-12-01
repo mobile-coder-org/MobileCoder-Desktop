@@ -121,13 +121,11 @@ class UserService {
         return fileContent;
     }
 
-    static overwriteFile(uid, wid, file, callback){
-        UserService.deleteUserWorkspaceFile(uid, wid, file.fid, (didDelete) => {
-            console.log(didDelete)
+    /* static async overwriteFile(uid, wid, file){
             if(didDelete){
-                UserService.createUserWorkspaceFile(uid, wid, file.name, file.extension, "", "",  (file) => {
+                let file = await UserService.createUserWorkspaceFile(uid, wid, file.name, file.extension, "", file.desktop_abs_path);
                     if(file){
-                        callback(file);
+                        file;
                     }
                     else {                            
                         //alert
@@ -139,7 +137,7 @@ class UserService {
                 callback(undefined)
             }
         })
-    }
+    } */
 }
 
 module.exports = {UserService}

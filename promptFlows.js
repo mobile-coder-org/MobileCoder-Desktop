@@ -6,6 +6,8 @@
  */
 
 const rl = require("readline-sync");
+const fs = require("fs");
+const path = require("path");
 
 const {UserService} = require("./services/UserService.js");
 var {firebase} = require('./environment/config.js');
@@ -87,6 +89,18 @@ class Flows {
             console.log("Sign out successful.");
             return null;
         });
+    }
+
+    static ls(dirname){
+        for(file of fs.readdirSync(dirname, {object: withFileTypes = true}) ){
+            if(file.indexOf('.') != 0){
+                let stats = fs.statSync(path.join(dirname + '/', file));
+                if(stats.isDirectory())
+                    console.log('* ' + dirname +'/'+ file);
+                else if(file.indexOf('.') != 0)
+                    console.log('* ' + file);
+            }
+        }
     }
 }
 
