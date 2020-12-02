@@ -92,7 +92,7 @@ class Flows {
     }
 
     static ls(dirname){
-        for(file of fs.readdirSync(dirname, {object: withFileTypes = true}) ){
+        for(file of fs.readdirSync(dirname, {withFileTypes: true}) ){
             if(file.indexOf('.') != 0){
                 let stats = fs.statSync(path.join(dirname + '/', file));
                 if(stats.isDirectory())

@@ -17,7 +17,9 @@ continuePrompt = true;
 let availableCommands = [
     //state 1 
     "'signup - Create a new profile.\n" + 
-    "'login' - Login to an existing profile.\n" + 
+    "'login' - Login to an existing profile.\n" +
+    "'ls' / 'ls [path_to_file/path_to_directory]' - Displays a list of files in specified directory, or in current directory if none is specified. \n" +
+    "'clear' - Clears the console output.\n " + 
     "'quit' - Exits the program. \n" + 
     "'help' - Displays a list of all currently available commands.", 
     //state 2
@@ -26,6 +28,8 @@ let availableCommands = [
     "'use workspace [workspace_name]' - Enter into workspace with [workspace_name] associated with the current user.\n" +
     "'refresh' - Refreshes data. Use in case you have pushed a change on mobile while you were signed in on the desktop CLI.\n"+
     "'signout' - Signout of the current profile.\n" +
+    "'ls' / 'ls [path_to_file/path_to_directory]' - Displays a list of files in specified directory, or in current directory if none is specified. \n" +
+    "'clear' - Clears the console output.\n " +
     "'quit' - Exits the program.\n" + 
     "'help' - Displays a list of all currently available commands.",
     //state 3
@@ -34,10 +38,13 @@ let availableCommands = [
     "'pull file [file_name || -a] - Pulls a file [file_name] to local machine in current directory. [-a] to pull all files in current workspace.\n" +
     "'refresh' - Refreshes data. Use in case you have pushed a change on mobile while you were signed in on the desktop CLI.\n" +
     "'leave workspace' - Leaves the current workspace.\n" + 
+    "'ls' / 'ls [path_to_file/path_to_directory]' - Displays a list of files in specified directory, or in current directory if none is specified. \n" +
+    "'clear' - Clears the console output.\n " +
     "'quit' - Exits the program.\n" + 
     "'help' - Displays a list of all currently available commands." 
 
 ];
+
 var currentWorkspace = new Workspace(null, "", null);
 var user = new User(null, "", "");
 var state = 0; //0 - Beginning | 1 - Signed-in | 2 - In a workspace
@@ -49,6 +56,36 @@ async function prompt() {
         let fullInput = inputArgs.join(' ');
 
         switch(fullInput){
+            case "ls":
+            case "ls " + inputArgs[1]:
+                if(inputArgs[1]){
+                    if(fs.existsSync(inputArgs[1]) && fs.statSync(inputArgs[1]).isDirectory()){
+                        for(file of fs.readdirSync(inputArgs[1], {object: withFileTypes = true})){
+                            if(file.indexOf('.') != 0){
+                                let stats = fs.statSync(path.join(inputArgs[1] + '/', file));
+                                if(stats.isDirectory())
+                                    console.log('* '+ file + '/');
+                                else if(file.indexOf('.') != 0)
+                                    console.log('* ' + file);
+                            }
+                        }
+                    } else 
+                        console.log("Invalid Directory");
+                } else {
+                    for(file of fs.readdirSync('.', {object: withFileTypes = true})){
+                        if(file.indexOf('.') != 0){
+                            let stats = fs.statSync(path.join('./', file));
+                            if(stats.isDirectory())
+                                console.log('* ' + file + '/');
+                            else if(file.indexOf('.') != 0)
+                                console.log('* ' + file);
+                        }
+                    }
+                }
+                break;
+            case "clear":
+                console.clear();
+                break;
             case "help":
                 console.log(availableCommands[state]);
                 break;
@@ -75,36 +112,6 @@ async function prompt() {
                                     state = 1;
                                     console.log("Successfully logged into user with uid: ", user.uid);
                                 }
-                                break;
-                            case "ls":
-                            case "ls " + inputArgs[1]:
-                                if(inputArgs[1]){
-                                    if(fs.existsSync(inputArgs[1])){
-                                        for(file of fs.readdirSync(inputArgs[1], {object: withFileTypes = true})){
-                                            if(file.indexOf('.') != 0){
-                                                let stats = fs.statSync(path.join(inputArgs[1] + '/', file));
-                                                if(stats.isDirectory())
-                                                    console.log('* '+ file + '/');
-                                                else if(file.indexOf('.') != 0)
-                                                    console.log('* ' + file);
-                                            }
-                                        }
-                                    } else 
-                                        console.log("Invalid Directory");
-                                } else {
-                                    for(file of fs.readdirSync('.', {object: withFileTypes = true})){
-                                        if(file.indexOf('.') != 0){
-                                            let stats = fs.statSync(path.join('./', file));
-                                            if(stats.isDirectory())
-                                                console.log('* ' + file + '/');
-                                            else if(file.indexOf('.') != 0)
-                                                console.log('* ' + file);
-                                        }
-                                    }
-                                }
-                                break;
-                            case "clear":
-                                console.clear();
                                 break;
                             default: 
                                 console.log("Invalid command. Enter 'help' to get a list of all currently available commands.");
@@ -220,23 +227,10 @@ async function prompt() {
                             default: 
                                 console.log("Invalid command. Enter 'help' to get a list of all currently available commands.");
                         }
-                        break;  
+                        break; 
             }
         }
-
     } while(continuePrompt);
 }
 
-function ls(dirname){
-    for(file of fs.readdirSync(dirname, {object: withFileTypes = true}) ){
-        if(file.indexOf('.') != 0){
-            let stats = fs.statSync(path.join(dirname + '/', file));
-            if(stats.isDirectory())
-                console.log('* ' + dirname +'/'+ file);
-            else if(file.indexOf('.') != 0)
-                console.log('* ' + file);
-        }
-    }
-}
 prompt();
-//ls('.');
