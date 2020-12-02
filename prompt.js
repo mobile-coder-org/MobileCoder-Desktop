@@ -19,7 +19,7 @@ let availableCommands = [
     "'signup - Create a new profile.\n" + 
     "'login' - Login to an existing profile.\n" +
     "'ls' / 'ls [path_to_file/path_to_directory]' - Displays a list of files in specified directory, or in current directory if none is specified. \n" +
-    "'clear' - Clears the console output.\n " + 
+    "'clear' - Clears the console output.\n" + 
     "'quit' - Exits the program. \n" + 
     "'help' - Displays a list of all currently available commands.", 
     //state 2
@@ -29,7 +29,7 @@ let availableCommands = [
     "'refresh' - Refreshes data. Use in case you have pushed a change on mobile while you were signed in on the desktop CLI.\n"+
     "'signout' - Signout of the current profile.\n" +
     "'ls' / 'ls [path_to_file/path_to_directory]' - Displays a list of files in specified directory, or in current directory if none is specified. \n" +
-    "'clear' - Clears the console output.\n " +
+    "'clear' - Clears the console output.\n" +
     "'quit' - Exits the program.\n" + 
     "'help' - Displays a list of all currently available commands.",
     //state 3
@@ -39,7 +39,7 @@ let availableCommands = [
     "'refresh' - Refreshes data. Use in case you have pushed a change on mobile while you were signed in on the desktop CLI.\n" +
     "'leave workspace' - Leaves the current workspace.\n" + 
     "'ls' / 'ls [path_to_file/path_to_directory]' - Displays a list of files in specified directory, or in current directory if none is specified. \n" +
-    "'clear' - Clears the console output.\n " +
+    "'clear' - Clears the console output.\n" +
     "'quit' - Exits the program.\n" + 
     "'help' - Displays a list of all currently available commands." 
 
