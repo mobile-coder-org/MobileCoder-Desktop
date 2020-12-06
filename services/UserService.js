@@ -29,7 +29,10 @@ class UserService {
     }
 
     static async getUser(uid, nocontents){
-        let user = await db.collection("users").doc(uid).get().then(async (doc) =>{
+        let user = await db.collection("users").doc(uid).get().catch((err) => {
+            console.log("error getting user");
+            console.log(err);
+        }).then(async (doc) =>{
             if(doc.exists){
                 let data = doc.data();
                 let workspaces = await UserService.getUserWorkspaces(uid, nocontents);
@@ -77,6 +80,18 @@ class UserService {
         return workspaces;
     }
 
+    static async deleteUserWorkspace(uid, wid, fids){
+        if(fids){
+            for(let fid of fids){
+                await UserService.deleteUserWorkspaceFile(uid, wid, fid);
+            }
+        }
+        await db.collection("users").doc(uid).collection("workspaces").doc(wid).delete().catch((err) => {
+            console.log("error deleting workspace")
+            console.log(err);
+        })
+    }
+
     static async createUserWorkspaceFile(uid, wid, fileName, extension, contents, desktop_abs_path){
         let file = await db.collection("users").doc(uid).collection("workspaces").doc(wid).collection("files").add({
             name: fileName,
@@ -84,11 +99,9 @@ class UserService {
             contents: contents,
             desktop_abs_path: desktop_abs_path
         }).catch((err) => {
-            console.log("error creating file");
             console.log(err);
         }).then(docRef => {
             let fileNoContents = new File(docRef.id, fileName, extension, "", desktop_abs_path);
-            console.log("Successfully added file with name: ", fileName);
             return fileNoContents;
         });
         return file;
@@ -121,23 +134,19 @@ class UserService {
         return fileContent;
     }
 
-    /* static async overwriteFile(uid, wid, file){
-            if(didDelete){
-                let file = await UserService.createUserWorkspaceFile(uid, wid, file.name, file.extension, "", file.desktop_abs_path);
-                    if(file){
-                        file;
-                    }
-                    else {                            
-                        //alert
-                        callback(undefined)
-                    }
-                })  
-            }
-            else{
-                callback(undefined)
-            }
-        })
-    } */
+    static async deleteUserWorkspaceFile(uid, wid, fid){
+        await db.collection("users").doc(uid).collection("workspaces").doc(wid).collection("files").doc(fid).delete().catch((err) =>{
+            console.log("error deleting file");
+            console.log(err)
+        });
+    }
+
+    static async overwriteUserWorkspaceFile(uid, wid, file){
+        await UserService.deleteUserWorkspaceFile(uid, wid, file.fid);
+        let newfile = await UserService.createUserWorkspaceFile(uid, wid, file.name, file.extension, file.contents, file.desktop_abs_path);
+        console.log("Successfully overwrote file: ", newfile.name + newfile.extension);
+    }
+
 }
 
 module.exports = {UserService}

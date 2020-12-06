@@ -11,7 +11,6 @@ const path = require("path");
 
 const {UserService} = require("./services/UserService.js");
 var {firebase} = require('./environment/config.js');
-const { User } = require("./models/models.js");
 require("firebase/auth");
 
 class Flows {
@@ -92,15 +91,18 @@ class Flows {
     }
 
     static ls(dirname){
-        for(file of fs.readdirSync(dirname, {withFileTypes: true}) ){
-            if(file.indexOf('.') != 0){
-                let stats = fs.statSync(path.join(dirname + '/', file));
-                if(stats.isDirectory())
-                    console.log('* ' + dirname +'/'+ file);
-                else if(file.indexOf('.') != 0)
-                    console.log('* ' + file);
+        if(fs.existsSync(dirname) && fs.statSync(dirname).isDirectory()){
+            for(file of fs.readdirSync(dirname)){
+                if(file.indexOf('.') != 0){
+                    let stats = fs.statSync(path.join(dirname + '/', file));
+                    if(stats.isDirectory())
+                        console.log("* " + file + "/");
+                    else if(file.indexOf(".") != 0)
+                        console.log("* " + file);
+                }
             }
-        }
+        } else 
+            console.log("Invalid directory.");
     }
 }
 
