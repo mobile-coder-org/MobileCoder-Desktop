@@ -10,10 +10,11 @@ const rl = require("readline-sync");        //Read user inputs synchronously
 const fs = require("fs");                   //File System module
 const chalk = require("chalk");             //Colored outputs
 const ora = require("ora");                 //Loading spinner
+const boxen = require("boxen");             //Banner for initial launch
 
-const {User, Workspace, File} = require('./models/models.js');          //MobileCoder data models
-const {FileHelper} = require("./helpers.js");                           //Helper functions to interact with files easier
-const {UserService} = require("./services/UserService.js");             //Functions to interact with firestore
+const {User, Workspace, File} = require('../models/models.js');          //MobileCoder data models
+const {FileHelper} = require("../helpers/FileHelper.js");                           //Helper functions to interact with files easier
+const {UserService} = require("../helpers/UserService.js");             //Functions to interact with firestore
 const {Flows} = require("./promptFlows.js");                            //Helper functions to aid in flows and clean up main prompt.
 
 var spinner;                    //loading spinner
@@ -144,18 +145,22 @@ async function prompt() {
                                     console.log(chalk.yellow("Empty workspace collection."));
                                 break;
                             case "create workspace " + inputArgs[2]:
-                                if(workspaceNames.indexOf(inputArgs[2].toLowerCase()) < 0){
-                                    spinner = ora("Creating workspace...").start();
-                                    let newWorkspace = await UserService.createUserWorkspace(user.uid, inputArgs[2], Date.now());
-                                    if(newWorkspace){
-                                        spinner.succeed(chalk.green("New workspace created with name: ", newWorkspace.name));
-                                        user.workspaces.push(newWorkspace);
-                                        workspaceNames.push(newWorkspace.name);
-                                    } else
-                                        spinner.fail(chalk.red("Unable to create workspace..."));
+                                if(inputArgs[2].length > 50){
+                                    console.log(chalk.yellow("Workspace name cannot exceed 50 characters."));
+                                } else {
+                                    if(workspaceNames.indexOf(inputArgs[2].toLowerCase()) < 0){
+                                        spinner = ora("Creating workspace...").start();
+                                        let newWorkspace = await UserService.createUserWorkspace(user.uid, inputArgs[2], Date.now());
+                                        if(newWorkspace){
+                                            spinner.succeed(chalk.green("New workspace created with name: ", newWorkspace.name));
+                                            user.workspaces.push(newWorkspace);
+                                            workspaceNames.push(newWorkspace.name);
+                                        } else
+                                            spinner.fail(chalk.red("Unable to create workspace..."));
+                                    }
+                                    else   
+                                        console.log(chalk.yellow("Workspace already exists.")); 
                                 }
-                                else   
-                                    console.log(chalk.yellow("Workspace already exists.")); 
                                 break;
                             case "use workspace " + inputArgs[2]:
                                 i = workspaceNames.indexOf(inputArgs[2].toLowerCase());
@@ -393,4 +398,15 @@ async function prompt() {
     } while(continuePrompt);
 }
 
-prompt();
+console.log(boxen(chalk.hex('#8565c4')(
+    "<MC/>\n" + 
+    "Welcome to the MobileCoder Desktop CLI!\n" + 
+    "To get a list of available commands, enter 'help' or 'help -a' to view all commands."), {
+    margin: 1,
+    padding: {top: 0, bottom: 0, left: 3, right: 3},
+    align: 'center',
+    borderStyle: 'double',
+    borderColor: '#8565c4', 
+}));
+
+module.exports = {prompt}
