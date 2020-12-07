@@ -144,18 +144,22 @@ async function prompt() {
                                     console.log(chalk.yellow("Empty workspace collection."));
                                 break;
                             case "create workspace " + inputArgs[2]:
-                                if(workspaceNames.indexOf(inputArgs[2].toLowerCase()) < 0){
-                                    spinner = ora("Creating workspace...").start();
-                                    let newWorkspace = await UserService.createUserWorkspace(user.uid, inputArgs[2], Date.now());
-                                    if(newWorkspace){
-                                        spinner.succeed(chalk.green("New workspace created with name: ", newWorkspace.name));
-                                        user.workspaces.push(newWorkspace);
-                                        workspaceNames.push(newWorkspace.name);
-                                    } else
-                                        spinner.fail(chalk.red("Unable to create workspace..."));
+                                if(inputArgs[2].length > 50){
+                                    console.log(chalk.yellow("Workspace name cannot exceed 50 characters."));
+                                } else {
+                                    if(workspaceNames.indexOf(inputArgs[2].toLowerCase()) < 0){
+                                        spinner = ora("Creating workspace...").start();
+                                        let newWorkspace = await UserService.createUserWorkspace(user.uid, inputArgs[2], Date.now());
+                                        if(newWorkspace){
+                                            spinner.succeed(chalk.green("New workspace created with name: ", newWorkspace.name));
+                                            user.workspaces.push(newWorkspace);
+                                            workspaceNames.push(newWorkspace.name);
+                                        } else
+                                            spinner.fail(chalk.red("Unable to create workspace..."));
+                                    }
+                                    else   
+                                        console.log(chalk.yellow("Workspace already exists.")); 
                                 }
-                                else   
-                                    console.log(chalk.yellow("Workspace already exists.")); 
                                 break;
                             case "use workspace " + inputArgs[2]:
                                 i = workspaceNames.indexOf(inputArgs[2].toLowerCase());
