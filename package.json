@@ -2,7 +2,7 @@
   "name": "mobilecoder-desktop",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "prompt.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -17,6 +17,9 @@
   },
   "homepage": "https://github.com/jdynk215/MobileCoder-Desktop#readme",
   "dependencies": {
-    "firebase": "^8.0.1"
+    "chalk": "^4.1.0",
+    "firebase": "^8.0.1",
+    "ora": "^5.1.0",
+    "readline-sync": "^1.4.10"
   }
 }
