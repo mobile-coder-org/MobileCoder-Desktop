@@ -17,7 +17,9 @@
   },
   "homepage": "https://github.com/jdynk215/MobileCoder-Desktop#readme",
   "dependencies": {
+    "chalk": "^4.1.0",
     "firebase": "^8.0.1",
+    "ora": "^5.1.0",
     "readline-sync": "^1.4.10"
   }
 }

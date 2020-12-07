@@ -1,26 +1,29 @@
 /**
  * @author Alex Hammer
  * @date October 31, 2020
+ * Latest Update: November 24, 2020
  * 
  * Helper functions to interact with files and class FileHelper to call the helper functions.
  */
 
-const path = require("path");
-const fs = require("fs");
-const rl = require("readline-sync");
+const path = require("path");           //Utility to work with file/directory paths
+const fs = require("fs");               //File System module
+const rl = require("readline-sync");    //Read user inputs synchronously
+const chalk = require("chalk");         //Colored outputs
 
 class FileHelper{
     /**
      * Takes in a filename, opens it and returns contents as a string
      * @param {String} filename 
-     * @return {String} contents, null on error
+     * 
+     * @return {String || null}
      */
     static openFile(filename){
         try{
             var contents = fs.readFileSync(filename, "utf8");
             return contents;
         } catch(e){
-            console.log("Error:", e.stack);
+            console.log(chalk.red("Error:", e.stack));
             return null;
         }
     }
@@ -42,7 +45,7 @@ class FileHelper{
     static async createFile(name, contents, extension){
         let overwriteFile = true;
         if(fs.existsSync(name+extension))
-            overwriteFile = rl.keyInYNStrict(name+extension + " already exists, would you like to overwrite?");
+            overwriteFile = rl.keyInYNStrict(chalk.yellow(name+extension + " already exists, would you like to overwrite?"));
         if(overwriteFile){
             fs.writeFileSync(name + extension, contents);
             if(fs.existsSync(name+extension))
@@ -58,11 +61,12 @@ class FileHelper{
      * If original file path (file to be overwritten) doesn't exists, it just creates it and uses the other file's contents.
      * @param {String} origFilePath = file to be overwritten
      * @param {String} newFilePath  = file whose contents will be used to overwrite
+     * 
      * @return {Boolean}
      */
     static overwriteFile(origFilePath, newFilePath){
         if(!fs.existsSync(newFilePath)){
-            console.log("File to overwrite with does not exist.");
+            console.log(chalk.red("File to overwrite with does not exist."));
             return false;
         }
         var contents = openFile(newFilePath);
@@ -77,7 +81,8 @@ class FileHelper{
     /**
      * Takes a given pathname and gets the absolute path to the file.
      * @param {String} pathname 
-     * @return {String} absolutePath on success, null on failure
+     * 
+     * @return {String || null} 
      */
     static getAbsolutePath(pathname){
         if(fs.existsSync(pathname))

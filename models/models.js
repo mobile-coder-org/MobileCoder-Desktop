@@ -1,3 +1,11 @@
+/**
+ * @author Daye Jack
+ * @date November 20, 2020
+ * Latest update: N/A
+ * 
+ * Models for our MobileCoder application. 
+ * These models are built similarly to our firestore storage is built.
+ */
 class User {
     constructor(uid, name, email, workspaces){
         this.uid = uid;
