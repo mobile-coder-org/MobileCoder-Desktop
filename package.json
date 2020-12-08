@@ -1,6 +1,6 @@
 {
-  "name": "mobilecoder-desktop",
-  "version": "0.1.1",
+  "name": "@mobile-coder/mobilecoder-desktop",
+  "version": "0.1.0",
   "description": "MobileCoder Desktop CLI",
   "main": "MobileCoder.js",
   "bin": {
@@ -14,9 +14,7 @@
     "type": "git",
     "url": "git+https://github.com/jdynk215/MobileCoder-Desktop.git"
   },
-  "author": {
-    "name": "MobileCoder"
-  },
+  "author": "MobileCoder",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/jdynk215/MobileCoder-Desktop/issues"
@@ -28,5 +26,12 @@
     "firebase": "^8.1.2",
     "ora": "^5.1.0",
     "readline-sync": "^1.4.10"
-  }
+  },
+  "devDependencies": {},
+  "keywords": [
+    "Mobile",
+    "Desktop",
+    "CLI",
+    "Coding"
+  ]
 }
