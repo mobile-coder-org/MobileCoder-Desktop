@@ -1,25 +1,29 @@
 # Mobile Coder - Desktop CLI
-A desktop client, which works with the Mobile Coder mobile app, to make code editing on mobile devices and syncing changes with a desktop machine
+A command line client, which works with the Mobile Coder mobile app, to make code editing on mobile devices and syncing changes with your desktop machine 
 simple and intuitive.
+
+Using the client, you can create workspaces, that are synced with the Mobile Coder mobile app, and add files to your workspaces.
+
+Code editing on the go is as simple as editing files on the mobile app, and pulling your changes to your desktop using this client.
 
 ## Installation
 
-You can install the Mobile Coder desktop client with the command below:
+You can install the Mobile Coder Desktop CLI with the command below:
 
 ```
-npm install -g mobilecoder-desktop
+shell> npm install -g mobilecoder-desktop
 ```
 
 ## Uninstall
 
-You can uninstall Mobile Coder desktop client with the command below:
+You can uninstall the Mobile Coder Desktop CLI with the command below:
 
 ```
-npm uninstall -g mobilecoder-desktop
+shell> npm uninstall -g mobilecoder-desktop
 ```
 
 ## Usage
-Running `mobilecoder` or `mc` from any directory after installing will launch the Mobile Coder Desktop CLI.
+You can run the Mobile Coder Desktop CLI from any directory after installing with either of the commands below:
 ```
 shell> mobilecoder
 
@@ -29,7 +33,7 @@ shell> mc
 
 ```
 
-### Start screen
+## Start screen
 
 ```
    ╔══════════════════════════════════════════════════════════════════════════════════════════╗
