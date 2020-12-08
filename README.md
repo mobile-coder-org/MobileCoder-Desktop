@@ -1,10 +1,10 @@
 # Mobile Coder - Desktop CLI
-A command line client, which works with the Mobile Coder mobile app, to make code editing on mobile devices and syncing changes with your desktop machine 
+A command line client, which works with the Mobile Coder mobile app, to make code editing on mobile devices and syncing changes with a desktop machine 
 simple and intuitive.
 
-Using the client, you can create workspaces, that are synced with the Mobile Coder mobile app, and add files to your workspaces.
+Using the client, users can create workspaces, that are synced with the Mobile Coder mobile app, and add files to their workspaces.
 
-Code editing on the go is as simple as editing files on the mobile app, and pulling your changes to your desktop using this client.
+Code editing on the go is as simple as editing files on the mobile app, and pulling changes from mobile to desktop using this client.
 
 ## Installation
 
