@@ -1,6 +1,6 @@
 {
-  "name": "mobilecoder-desktop",
-  "version": "0.1.0",
+  "name": "@mobile-coder/mobilecoder-desktop",
+  "version": "0.1.1",
   "description": "MobileCoder Desktop CLI",
   "main": "MobileCoder.js",
   "bin": {
