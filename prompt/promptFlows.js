@@ -12,8 +12,8 @@ const path = require("path");           //Utility module to work with file/direc
 const chalk = require("chalk");         //Colored text outputs
 const ora = require('ora');             //Loading spinners
 
-const {UserService} = require("./services/UserService.js");     //UserService is where firestore interacting functions are held
-var {firebase} = require('./environment/config.js');            //Firebase - taken from config.js, where our firebase credentials are stored (safe to be public).
+const {UserService} = require("../helpers/UserService.js");     //UserService is where firestore interacting functions are held
+var {firebase} = require('../environment/config.js');            //Firebase - taken from config.js, where our firebase credentials are stored (safe to be public).
 require("firebase/auth");
 
 let spinner;    //Loading spinner
@@ -44,7 +44,7 @@ class Flows {
             if(checkUser){
                 let name = checkUser.email.substring(0, checkUser.email.indexOf("@"));
                 let newUser = await UserService.createUser(checkUser.uid, name, checkUser.email);
-                spinner.succeed(chalk.green("New user created with uid: ", newUser.uid));
+                spinner.succeed(chalk.green("New user created: ", newUser.name));
             }
             else {
                 spinner.fail(chalk.red("Failed to create user..."));

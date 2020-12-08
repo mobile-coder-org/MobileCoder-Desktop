@@ -1,8 +1,12 @@
 {
   "name": "mobilecoder-desktop",
-  "version": "1.0.0",
-  "description": "",
-  "main": "prompt.js",
+  "version": "0.1.0",
+  "description": "MobileCoder Desktop CLI",
+  "main": "MobileCoder.js",
+  "bin": {
+    "mobilecoder": "MobileCoder.js",
+    "mc": "MobileCoder.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,13 +14,16 @@
     "type": "git",
     "url": "git+https://github.com/jdynk215/MobileCoder-Desktop.git"
   },
-  "author": "",
+  "author": {
+    "name": "MobileCoder"
+  },
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/jdynk215/MobileCoder-Desktop/issues"
   },
   "homepage": "https://github.com/jdynk215/MobileCoder-Desktop#readme",
   "dependencies": {
+    "boxen": "^4.2.0",
     "chalk": "^4.1.0",
     "firebase": "^8.0.1",
     "ora": "^5.1.0",
