@@ -1,10 +1,11 @@
 {
-  "name": "mobilecoder-desktop-cli",
-  "version": "1.0.0",
+  "name": "mobilecoder-desktop",
+  "version": "0.1.0",
   "description": "MobileCoder Desktop CLI",
-  "main": "./prompt/prompt.js",
+  "main": "MobileCoder.js",
   "bin": {
-    "run-mobilecoder": "MobileCoder.js"
+    "mobilecoder": "MobileCoder.js",
+    "mc": "MobileCoder.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

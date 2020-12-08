@@ -44,7 +44,7 @@ class Flows {
             if(checkUser){
                 let name = checkUser.email.substring(0, checkUser.email.indexOf("@"));
                 let newUser = await UserService.createUser(checkUser.uid, name, checkUser.email);
-                spinner.succeed(chalk.green("New user created with uid: ", newUser.uid));
+                spinner.succeed(chalk.green("New user created: ", newUser.name));
             }
             else {
                 spinner.fail(chalk.red("Failed to create user..."));

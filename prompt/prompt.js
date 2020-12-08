@@ -67,7 +67,7 @@ var files = {                                           //Used in state 2 - Keep
 async function prompt() {
     do{
         let inputArgs = rl.promptCL({ _: () => {}}, {
-            prompt: chalk.hex('#8565c4')('MobileCoder [' + currentWorkspace.name + ']> '),
+            prompt: ('MobileCoder [' + currentWorkspace.name + ']> '),
         });
         let fullInput = inputArgs.join(' ').toLowerCase();
 
@@ -112,6 +112,7 @@ async function prompt() {
                 break;
             case "quit":
                 continuePrompt = false;
+                console.log("Quitting... Goodbye!");
                 process.exit();
                 break;
             default:
@@ -144,7 +145,7 @@ async function prompt() {
                                 else    
                                     console.log(chalk.yellow("Empty workspace collection."));
                                 break;
-                            case "create workspace " + inputArgs[2]:
+                            case ("create workspace " + inputArgs[2]).toLowerCase():
                                 if(inputArgs[2].length > 50){
                                     console.log(chalk.yellow("Workspace name cannot exceed 50 characters."));
                                 } else {
@@ -154,7 +155,7 @@ async function prompt() {
                                         if(newWorkspace){
                                             spinner.succeed(chalk.green("New workspace created with name: ", newWorkspace.name));
                                             user.workspaces.push(newWorkspace);
-                                            workspaceNames.push(newWorkspace.name);
+                                            workspaceNames.push(newWorkspace.name.toLowerCase());
                                         } else
                                             spinner.fail(chalk.red("Unable to create workspace..."));
                                     }
@@ -162,7 +163,7 @@ async function prompt() {
                                         console.log(chalk.yellow("Workspace already exists.")); 
                                 }
                                 break;
-                            case "use workspace " + inputArgs[2]:
+                            case ("use workspace " + inputArgs[2]).toLowerCase():
                                 i = workspaceNames.indexOf(inputArgs[2].toLowerCase());
                                 if(i >= 0){
                                     state = 2;
@@ -176,7 +177,7 @@ async function prompt() {
                                 } else 
                                     console.log(chalk.yellow("Workspace does not exist."));
                                 break;
-                            case "delete workspace " + inputArgs[2]:
+                            case ("delete workspace " + inputArgs[2]).toLowerCase():
                                 i = workspaceNames.indexOf(inputArgs[2].toLowerCase());
                                 if(i >= 0){
                                     let warning = rl.keyInYNStrict(chalk.yellow("Warning: deleting a workspace deletes all files inside of the workspace. Do you wish to continue?"));
@@ -398,10 +399,10 @@ async function prompt() {
     } while(continuePrompt);
 }
 
-console.log(boxen(chalk.hex('#8565c4')(
+console.log(boxen(chalk.hex('#9B51E0')(chalk.white(
     "<MC/>\n" + 
     "Welcome to the MobileCoder Desktop CLI!\n" + 
-    "To get a list of available commands, enter 'help' or 'help -a' to view all commands."), {
+    "To get a list of available commands, enter 'help' or 'help -a' to view all commands.")), {
     margin: 1,
     padding: {top: 0, bottom: 0, left: 3, right: 3},
     align: 'center',
