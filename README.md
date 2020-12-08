@@ -85,9 +85,6 @@ The following are the availble non-global commands within this state.
 
 
 ## Links
-
-* [Our npm page](insert npm page/).
-
 * [Our Privacy Policy](https://i6.cims.nyu.edu/~ddj231/mcterms/)
 
 ## Team Members
