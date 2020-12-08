@@ -4,13 +4,13 @@ The Mobile Coder Desktop CLI is easy to learn, and quick to use; aiming to make 
 The following instructions assume the user has npm installed, which comes with Node.js.
 ## Installation
 ```
-npm install -g mobilecoder-desktop
+npm i -g @mobile-coder/mobilecoder-desktop
 ```
 This will install the Mobile Coder Desktop CLI globally, allowing you to run it from any directory on your machine.
 
 ## Uninstall
 ```
-npm uninstall -g mobilecoder-desktop
+npm i -g @mobile-coder/mobilecoder-desktop
 ```
 This will uninstall the Mobile Coder Desktop CLI from the global node_modules you have installed.
 
@@ -85,6 +85,7 @@ The following are the availble non-global commands within this state.
 
 
 ## Links
+* [NPM page](https://www.npmjs.com/package/@mobile-coder/mobilecoder-desktop)
 * [Our Privacy Policy](https://i6.cims.nyu.edu/~ddj231/mcterms/)
 
 ## Team Members

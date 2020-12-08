@@ -1,5 +1,5 @@
 {
-  "name": "@mobile-coder/mobilecoder-desktop",
+  "name": "mobilecoder-desktop",
   "version": "0.1.0",
   "description": "MobileCoder Desktop CLI",
   "main": "MobileCoder.js",
