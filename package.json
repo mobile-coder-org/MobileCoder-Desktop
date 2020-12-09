@@ -12,14 +12,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jdynk215/MobileCoder-Desktop.git"
+    "url": "git+https://github.com/mobile-coder-org/MobileCoder-Desktop"
   },
   "author": "MobileCoder",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/jdynk215/MobileCoder-Desktop/issues"
+    "url": "https://github.com/mobile-coder-org/MobileCoder-Desktop/issues"
   },
-  "homepage": "https://github.com/jdynk215/MobileCoder-Desktop#readme",
+  "homepage": "https://github.com/mobile-coder-org/MobileCoder-Desktop#readme",
   "dependencies": {
     "boxen": "^4.2.0",
     "chalk": "^4.1.0",
