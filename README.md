@@ -11,7 +11,7 @@ Code editing on the go is as simple as editing files on the mobile app, and pull
 Install the Mobile Coder Desktop CLI with the command below:
 
 ```
-shell> npm install -g mobilecoder-desktop
+shell> npm install -g @mobile-coder/mobilecoder-desktop 
 ```
 
 ## Uninstall
@@ -19,7 +19,7 @@ shell> npm install -g mobilecoder-desktop
 Uninstall the Mobile Coder Desktop CLI with the command below:
 
 ```
-shell> npm uninstall -g mobilecoder-desktop
+shell> npm uninstall -g @mobile-coder/mobilecoder-desktop
 ```
 
 ## Usage
